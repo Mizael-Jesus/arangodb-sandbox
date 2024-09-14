@@ -127,11 +127,3 @@ FOR permission IN permissions
         action: permission.action
     }
 ```
-
-## Pendências com o Levi
-
-- [ ] Permissões descendo | Inbound e outbound (front: caixa de texto digitação) 
-- [ ] Ir para diretório
-- [ ] para descer, limitar a 1
-- [ ] Views para simplificar acesso
-- [ ] Procedures para facilitar alterações
