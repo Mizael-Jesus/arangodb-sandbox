@@ -60,15 +60,15 @@ Toda a interagir com a aplicação deve ser realizada através do Makefile.
 
 ```bash
 Comandos disponíveis:
-	make up         - 🚀 Construir e rodar os contêineres
-	make down       - 🛑 Parar e remover os contêineres
-	make clean      - 🧹 Limpar volumes e imagens
-	make logs       - 📜 Exibir os logs dos contêineres
-	make stats      - 📈 Exibir o uso de recursos pelos contêiners em execução
-	make seed       - 🌱 Popular banco de dados
-	make exec       - ⌨️  Acessar console do contêiner
-	make arangosh   - ⌨️  Acessar console Arangosh
-	make help       - ❔ Acessar comandos disponíveis
+make up         - 🚀 Construir e rodar os contêineres
+make down       - 🛑 Parar e remover os contêineres
+make clean      - 🧹 Limpar volumes e imagens
+make logs       - 📜 Exibir os logs dos contêineres
+make stats      - 📈 Exibir o uso de recursos pelos contêiners em execução
+make seed       - 🌱 Popular banco de dados
+make exec       - ⌨️  Acessar console do contêiner
+make arangosh   - ⌨️  Acessar console Arangosh
+make help       - ❔ Acessar comandos disponíveis
 ```
 
 ### 1. 🚀 Construir e rodar os contêineres: 
@@ -126,22 +126,6 @@ FOR permission IN permissions
         targetName: target.name,
         action: permission.action
     }
-```
-#### Mover diretório ou arquivo
-
-```bash
-const db = require('@arangodb').db;
-
-const oldParentId = "folders/oldParentFolderId";
-const newParentId = "folders/newParentFolderId";
-const itemId = "folders/folderToMoveId"; // ou "files/fileToMoveId"
-const itemType = "folder"; // ou "file"
-
-const result = db._query(`
-    RETURN NOOPT(FUNCTION('myNamespace::changeParentDirectory', @oldParentId, @newParentId, @itemId, @itemType))
-`, { oldParentId, newParentId, itemId, itemType }).toArray();
-
-console.log(result);
 ```
 
 ## Pendências com o Levi
