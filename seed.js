@@ -1,10 +1,3 @@
-const ids = {
-    folders: {},
-    files: {},
-    persons: {},
-    groups: {}    
-};
-
 function generateULID() {
     const ULID_LEN = 26;
     function padBase32(num, len) {
@@ -43,7 +36,7 @@ function createCollections() {
     db._createDocumentCollection('persons');
     db._createDocumentCollection('groups');    
     db._createEdgeCollection('contains');
-    db._createEdgeCollection('groups_persons');    
+    db._createEdgeCollection('memberOf');    
     db._createEdgeCollection('permissions');
 }
 
@@ -58,7 +51,7 @@ function createGraphs() {
 
     graphModule._create(
         'grafico_membros_de_grupos',
-        [graphModule._relation('groups_persons', ['groups'], ['persons'])]
+        [graphModule._relation('memberOf', ['groups'], ['persons'])]
     );
     
     graphModule._create(
@@ -66,7 +59,7 @@ function createGraphs() {
         [
             graphModule._relation('contains', ['folders', 'files'], ['folders', 'files']),
             graphModule._relation('permissions', ['groups'], ['folders', 'files']),
-            graphModule._relation('groups_persons', ['groups'], ['persons'])
+            graphModule._relation('memberOf', ['groups'], ['persons'])
         ]
     );
 }
@@ -102,289 +95,288 @@ function createView() {
     `, { groupId: '@groupId' }).toArray();
 }
 
-function getRandomUniqueNames(names, count) {
-    const shuffled = names.sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, count);
-}
-
 function createFolders() {
     console.log("Criando diretórios...");
-    const names = [
-        'Pasta Projetos', 'Pasta Contratos', 'Pasta Documentos', 'Pasta Arquivos Mortos', 'Pasta Contabilidade',
-        'Pasta Jurídico', 'Pasta Marketing', 'Pasta Vendas', 'Pasta Compras', 'Pasta Treinamento', 
-        'Pasta Desenvolvimento', 'Pasta Pesquisa', 'Pasta Auditoria', 'Pasta Segurança', 'Pasta Qualidade', 
-        'Pasta Atendimento', 'Pasta Comunicação', 'Pasta Estratégia', 'Pasta Planejamento', 'Pasta Administração',
-        'Pasta Governança', 'Pasta Diretoria'
-    ];
-    const selectedNames = getRandomUniqueNames(names, 20);
-    const newIds = selectedNames.map(() => generateULID());
 
-    ids.folders['folderRootId'] = generateULID();
-    db.folders.save({ _key: ids.folders['folderRootId'], name: 'Pasta Raíz' });
-
-    newIds.forEach((id, index) => {
-        ids.folders[`folder${index}Id`] = id;
-        db.folders.save({ _key: id, name: selectedNames[index] });
-    });
+    db.folders.save({ _key: '01J7ZWDZFFA3N8859WPJ411482', name: 'Pasta Raiz' });
+    db.folders.save({ _key: '01J7ZWHHM3ZDTR1G049J28DBJ7', name: 'Pasta Contabilidade' });
+    db.folders.save({ _key: '01J7ZWHPDBN8ZCYK9XZPQY8XE7', name: 'Pasta Jurídico' });
+    db.folders.save({ _key: '01J7ZWHW5AFC2SDB6VPPA9PKJC', name: 'Pasta Marketing' });
+    db.folders.save({ _key: '01J7ZWH0YGY6G3V5MQ56ZDAVRP', name: 'Pasta Contratos' });
+    db.folders.save({ _key: '01J7ZWHCDB3YX8WHZKT732VX97', name: 'Pasta Arquivos Mortos' });    
+    db.folders.save({ _key: '01J7ZWJRWDY6ZNQ0RSWHTSZM3D', name: 'Pasta Auditoria' });
+    db.folders.save({ _key: '01J7ZWG3376RG9TNKBW18EFPWR', name: 'Pasta Projetos' });    
+    db.folders.save({ _key: '01J7ZWH6NQXXHKS55JMASW083S', name: 'Pasta Documentos' });
+    db.folders.save({ _key: '01J7ZWJ18N4J7CNP8JR9VRYFV9', name: 'Pasta Vendas' });
+    db.folders.save({ _key: '01J7ZWJ5J3SN7EN0SVC6R276D8', name: 'Pasta Compras' });
+    db.folders.save({ _key: '01J7ZWJ9RZJB3GF5JFNDQVMGZN', name: 'Pasta Treinamento' });
+    db.folders.save({ _key: '01J7ZWJDP3PAHYED1BAJZAXC0C', name: 'Pasta Desenvolvimento' });
+    db.folders.save({ _key: '01J7ZWJJ3N0GKSV651D83P4S6J', name: 'Pasta Pesquisa' });
+    db.folders.save({ _key: '01J7ZWJWXH7BM621QH7DSM2WBE', name: 'Pasta Segurança' });
+    db.folders.save({ _key: '01J7ZWK0RKETKSVE39SK7HPKGB', name: 'Pasta Qualidade' });
+    db.folders.save({ _key: '01J7ZWK5Y6X3XP289SYSWRK30F', name: 'Pasta Atendimento' });
+    db.folders.save({ _key: '01J7ZWKADBREDNZT78WE4W6GK4', name: 'Pasta Comunicação' });
+    db.folders.save({ _key: '01J7ZWKEDBK9X6G4053YBQ5RJH', name: 'Pasta Estratégia' });
+    db.folders.save({ _key: '01J7ZWKJN66WTK9YR6N09H4HYK', name: 'Pasta Planejamento' });
+    db.folders.save({ _key: '01J7ZXD5C39HZ2M66SYXXXGEDA', name: 'Pasta Administração' });
+    db.folders.save({ _key: '01J7ZXDBFWTPW88XNR4E583Y9A', name: 'Pasta Governança' });
+    db.folders.save({ _key: '01J7ZXDFCWN284EYJBPVTRBGBJ', name: 'Pasta Diretoria' });
+    db.folders.save({ _key: '01J7ZXDKNW7BKRKVP2KADRXSEG', name: 'Pasta Eventos' });
 }
 
 function assignFolderParentFolders() {
     console.log("Associando diretórios a seus diretórios pai...");
-    const rootFolderId = ids.folders['folderRootId'];
-    const folderIds = Object.values(ids.folders).filter(id => id !== rootFolderId);
-    const parentMap = {};
-   
-    parentMap[rootFolderId] = { parent: null, children: [] };
-
-    folderIds.forEach(folderId => {
-        parentMap[folderId] = { parent: null, children: [] };
-    });
-
-    function getValidParentFolder(excludeId) {
-        const validParents = Object.keys(parentMap).filter(id => id !== excludeId && parentMap[id].children.length < 3);
-        return validParents[Math.floor(Math.random() * validParents.length)];
-    }
-
-    for (let i = 0; i < 3 && folderIds.length > 0; i++) {
-        const childId = folderIds.shift();
-        parentMap[childId].parent = rootFolderId;
-        parentMap[rootFolderId].children.push(childId);
-        db.contains.save({ _from: 'folders/' + rootFolderId, _to: 'folders/' + childId });
-    }
-
-    folderIds.forEach(folderId => {
-        const parentFolderId = getValidParentFolder(folderId);
-        parentMap[folderId].parent = parentFolderId;
-        parentMap[parentFolderId].children.push(folderId);
-        db.contains.save({ _from: 'folders/' + parentFolderId, _to: 'folders/' + folderId });
-    });
+    
+    db.contains.save({ _from: 'folders/01J7ZWDZFFA3N8859WPJ411482', _to: 'folders/01J7ZWHHM3ZDTR1G049J28DBJ7' });
+    db.contains.save({ _from: 'folders/01J7ZWDZFFA3N8859WPJ411482', _to: 'folders/01J7ZWHPDBN8ZCYK9XZPQY8XE7' });
+    db.contains.save({ _from: 'folders/01J7ZWDZFFA3N8859WPJ411482', _to: 'folders/01J7ZWHW5AFC2SDB6VPPA9PKJC' });
+    db.contains.save({ _from: 'folders/01J7ZWHHM3ZDTR1G049J28DBJ7', _to: 'folders/01J7ZWH0YGY6G3V5MQ56ZDAVRP' });
+    db.contains.save({ _from: 'folders/01J7ZWHHM3ZDTR1G049J28DBJ7', _to: 'folders/01J7ZWHCDB3YX8WHZKT732VX97' });
+    db.contains.save({ _from: 'folders/01J7ZWHPDBN8ZCYK9XZPQY8XE7', _to: 'folders/01J7ZWJRWDY6ZNQ0RSWHTSZM3D' });
+    db.contains.save({ _from: 'folders/01J7ZWHW5AFC2SDB6VPPA9PKJC', _to: 'folders/01J7ZWG3376RG9TNKBW18EFPWR' });
+    db.contains.save({ _from: 'folders/01J7ZWHW5AFC2SDB6VPPA9PKJC', _to: 'folders/01J7ZWH6NQXXHKS55JMASW083S' });
+    db.contains.save({ _from: 'folders/01J7ZWH0YGY6G3V5MQ56ZDAVRP', _to: 'folders/01J7ZWJ18N4J7CNP8JR9VRYFV9' });
+    db.contains.save({ _from: 'folders/01J7ZWH0YGY6G3V5MQ56ZDAVRP', _to: 'folders/01J7ZWJ5J3SN7EN0SVC6R276D8' });
+    db.contains.save({ _from: 'folders/01J7ZWH0YGY6G3V5MQ56ZDAVRP', _to: 'folders/01J7ZWJ9RZJB3GF5JFNDQVMGZN' });
+    db.contains.save({ _from: 'folders/01J7ZWHCDB3YX8WHZKT732VX97', _to: 'folders/01J7ZWJDP3PAHYED1BAJZAXC0C' });
+    db.contains.save({ _from: 'folders/01J7ZWHCDB3YX8WHZKT732VX97', _to: 'folders/01J7ZWJJ3N0GKSV651D83P4S6J' });
+    db.contains.save({ _from: 'folders/01J7ZWHCDB3YX8WHZKT732VX97', _to: 'folders/01J7ZWJWXH7BM621QH7DSM2WBE' });
+    db.contains.save({ _from: 'folders/01J7ZWJRWDY6ZNQ0RSWHTSZM3D', _to: 'folders/01J7ZWK0RKETKSVE39SK7HPKGB' });
+    db.contains.save({ _from: 'folders/01J7ZWJRWDY6ZNQ0RSWHTSZM3D', _to: 'folders/01J7ZWK5Y6X3XP289SYSWRK30F' });
+    db.contains.save({ _from: 'folders/01J7ZWG3376RG9TNKBW18EFPWR', _to: 'folders/01J7ZWKADBREDNZT78WE4W6GK4' });
+    db.contains.save({ _from: 'folders/01J7ZWG3376RG9TNKBW18EFPWR', _to: 'folders/01J7ZWKEDBK9X6G4053YBQ5RJH' });
+    db.contains.save({ _from: 'folders/01J7ZWG3376RG9TNKBW18EFPWR', _to: 'folders/01J7ZWKJN66WTK9YR6N09H4HYK' });
+    db.contains.save({ _from: 'folders/01J7ZWH6NQXXHKS55JMASW083S', _to: 'folders/01J7ZXD5C39HZ2M66SYXXXGEDA' });
+    db.contains.save({ _from: 'folders/01J7ZWH6NQXXHKS55JMASW083S', _to: 'folders/01J7ZXDBFWTPW88XNR4E583Y9A' });
+    db.contains.save({ _from: 'folders/01J7ZWH6NQXXHKS55JMASW083S', _to: 'folders/01J7ZXDFCWN284EYJBPVTRBGBJ' });
+    db.contains.save({ _from: 'folders/01J7ZWH6NQXXHKS55JMASW083S', _to: 'folders/01J7ZXDKNW7BKRKVP2KADRXSEG' });
 }
 
 function createFiles() {
     console.log("Criando arquivos...");
-    const names = [
-        'Proposta Comercial.docx', 'Termo de Confidencialidade.docx', 'Planejamento financeiro.xlsx', 
-        'Nova logomarca.cdr', 'Relatório Financeiro Anual.xlsx', 'Apresentação Projeto Final.pptx', 
-        'Lista de Contatos.csv', 'Planejamento Estratégico 2025.pdf', 'Notas de Reunião.docx', 
-        'Fatura Setembro 2024.pdf', 'Inventário de Equipamentos.xlsx', 'Manual do Funcionário.pdf', 
-        'Descrição de Cargo.docx', 'Relatório de Vendas Q1.xlsx', 'Política de Privacidade.pdf', 
-        'Cronograma de Atividades.xlsx', 'Carta de Apresentação.docx', 'Relatório de Auditoria.pdf', 
-        'Plano de Marketing 2023.pptx', 'Relatório de Desempenho.pdf', 'Contrato de Prestação de Serviços.docx', 
-        'Lista de Tarefas.xlsx', 'Protocolo de Entrega.pdf', 'Relatório de Pesquisa.docx', 
-        'Plano de Negócios 2024.pdf', 'Resumo Executivo.docx', 'Proposta de Projeto.pptx', 
-        'Relatório de Status.docx', 'Plano de Treinamento.xlsx', 'Relatório de Incidentes.pdf', 
-        'Relatório de Despesas.xlsx', 'Relatório de Produção.docx', 'Relatório de Qualidade.pdf', 
-        'Relatório de Manutenção.xlsx', 'Relatório de Atendimento.docx', 'Relatório de Auditoria Interna.pdf', 
-        'Relatório de Conformidade.docx', 'Relatório de Segurança.pdf', 'Relatório de Sustentabilidade.docx', 
-        'Relatório de Responsabilidade Social.pdf', 'Relatório de Governança Corporativa.docx', 
-        'Relatório de Riscos.pdf', 'Relatório de Oportunidades.docx', 'Relatório de Desempenho Ambiental.pdf', 
-        'Relatório de Desempenho Social.docx', 'Relatório de Desempenho Econômico.pdf', 
-        'Relatório de Desempenho Operacional.docx', 'Relatório de Desempenho Financeiro.pdf', 
-        'Relatório de Desempenho de Mercado.docx', 'Relatório de Desempenho de Vendas.pdf', 
-        'Imagem1.jpg', 'Imagem2.png', 'Imagem3.gif', 'Imagem4.bmp', 'Imagem5.tiff', 
-        'Imagem6.jpeg', 'Imagem7.svg', 'Imagem8.webp', 'Imagem9.heic', 'Imagem10.raw'
-    ];
-    const selectedNames = getRandomUniqueNames(names, 50);
-    const newIds = selectedNames.map(() => generateULID());
+    
+    db.files.save({ _key: '01J7ZZ1VDM4ED91DTBS3E3BF1Y', name: 'Proposta Comercial.docx' });
+    db.files.save({ _key: '01J7ZZ1ZVAB3QNFFXWF1TWYJB5', name: 'Termo de Confidencialidade.docx' });
+    db.files.save({ _key: '01J7ZZ28NMM2DPSDWDNF7ES6VV', name: 'Planejamento financeiro.xlsx' });
+    db.files.save({ _key: '01J7ZZ2CYGG3HN9F8W4QDE3CE7', name: 'Nova logomarca.cdr' });
+    db.files.save({ _key: '01J7ZZ2HJME0QG771NM9J53FCS', name: 'Relatório Financeiro Anual.xlsx' });
+    db.files.save({ _key: '01J7ZZ2NXW4V1RZKGTVT6RBS74', name: 'Apresentação Projeto Final.pptx' });
+    db.files.save({ _key: '01J7ZZ2T105MJPV68KEK0CR0W5', name: 'Lista de Contatos.csv' });
+    db.files.save({ _key: '01J7ZZ2YJ8RQAT41F2PPHHRA2Q', name: 'Planejamento Estratégico 2025.pdf' });
+    db.files.save({ _key: '01J7ZZ33K1KD1ZBS2P99AA68ZG', name: 'Notas de Reunião.docx' });
+    db.files.save({ _key: '01J7ZZ37P9GRC5WFKFQYS6A3RE', name: 'Fatura Setembro 2024.pdf' });
 
-    newIds.forEach((id, index) => {
-        ids.files[`file${index}Id`] = id;
-        db.files.save({ _key: id, name: selectedNames[index] });
-    });
+    db.files.save({ _key: '01J7ZZ3D3VD4Q80NCDBYNTPED8', name: 'Inventário de Equipamentos.xlsx' });
+    db.files.save({ _key: '01J7ZZ3GX7EBNB5HX5VBVM4XTF', name: 'Manual do Funcionário.pdf' });
+    db.files.save({ _key: '01J7ZZ3N5AE661WGA4T51BFJ77', name: 'Descrição de Cargo.docx' });
+    db.files.save({ _key: '01J7ZZ3SRB0MKPNXYQQHVR252Y', name: 'Relatório de Vendas Q1.xlsx' });
+    db.files.save({ _key: '01J7ZZ3XGJ12DE6B6PZF3RAY9T', name: 'Política de Privacidade.pdf' });
+    db.files.save({ _key: '01J7ZZ41VDG813SJQV5B6SBP3X', name: 'Cronograma de Atividades.xlsx' });
+    db.files.save({ _key: '01J7ZZ46NXCH814243BFDHFJZ6', name: 'Carta de Apresentação.docx' });
+    db.files.save({ _key: '01J7ZZ4DEZ92AHHH8AJV1JFT9A', name: 'Relatório de Auditoria.pdf' });
+    db.files.save({ _key: '01J7ZZ4JV92BYARMC7F78S9WVA', name: 'Plano de Marketing 2023.pptx' });
+    db.files.save({ _key: '01J7ZZ4SB4DF028X5RR61QH7RA', name: 'Relatório de Desempenho.pdf' });
+
+    db.files.save({ _key: '01J7ZZ4Z37NEQJED9PN2EFQFFD', name: 'Contrato de Prestação de Serviços.docx' });
+    db.files.save({ _key: '01J7ZZ53AS0CM69H28BMK5AYQK', name: 'Lista de Tarefas.xlsx' });
+    db.files.save({ _key: '01J7ZZ57WCBST6FRCE4SRHPM9J', name: 'Protocolo de Entrega.pdf' });
+    db.files.save({ _key: '01J7ZZ5C9G8PVC70JKWAFN7J8E', name: 'Relatório de Pesquisa.docx' });
+    db.files.save({ _key: '01J7ZZ5H1QQ1ZCH2QH2KJSZC1D', name: 'Plano de Negócios 2024.pdf' });
+    db.files.save({ _key: '01J7ZZ6A2PCY9C101PQQ5RDR7F', name: 'Resumo Executivo.docx' });
+    db.files.save({ _key: '01J7ZZ6G2W81JYM3G80NC46K82', name: 'Proposta de Projeto.pptx' });
+    db.files.save({ _key: '01J7ZZ6NNCQ0QCK57QDTZZDPQK', name: 'Relatório de Status.docx' });
+    db.files.save({ _key: '01J7ZZ6T7FKE30PRTVYEMY8FXR', name: 'Plano de Treinamento.xlsx' });
+    db.files.save({ _key: '01J7ZZ6Y3BW2KN31R08GMW2X67', name: 'Relatório de Incidentes.pdf' });
+
+    db.files.save({ _key: '01J7ZZ7442W76BHVWCWATYS5MS', name: 'Relatório de Despesas.xlsx' });
+    db.files.save({ _key: '01J7ZZ78ZCNEVA3HKFC5JVJQES', name: 'Relatório de Produção.docx' });
+    db.files.save({ _key: '01J7ZZ7CDHQGVCQFP5DYGGBNTR', name: 'Relatório de Qualidade.pdf' });
+    db.files.save({ _key: '01J7ZZ7GGRETK540BQHKWZ3JAQ', name: 'Relatório de Manutenção.xlsx' });
+    db.files.save({ _key: '01J7ZZ7KK4KDCMDSS4V99ANZ18', name: 'Relatório de Atendimento.docx' });
+    db.files.save({ _key: '01J7ZZ7R5BG2VDYPSPNJMK10Z3', name: 'Relatório de Auditoria Interna.pdf' });
+    db.files.save({ _key: '01J7ZZ7VD49FJMKNTQNA0HYKFM', name: 'Relatório de Conformidade.docx' });
+    db.files.save({ _key: '01J7ZZ7Z86YN97BZKJ6K82A2X1', name: 'Relatório de Segurança.pdf' });
+    db.files.save({ _key: '01J7ZZ836QB8H5CTR5MKNS6T47', name: 'Relatório de Sustentabilidade.docx' });
+    db.files.save({ _key: '01J7ZZ87WYJZSFKRPNY0R5F2S8', name: 'Relatório de Responsabilidade Social.pdf' });
+
+    db.files.save({ _key: '01J7ZZ8J1X5Y835E2B9ZNJPJEK', name: 'Relatório de Governança Corporativa.docx' });
+    db.files.save({ _key: '01J7ZZ8P4JCFS7MRMJNDSF0YFM', name: 'Relatório de Riscos.pdf' });
+    db.files.save({ _key: '01J7ZZ8SCPEV7RN45R4KQ1M5S7', name: 'Relatório de Oportunidades.docx' });
+    db.files.save({ _key: '01J7ZZ8WS1AC1WXEZBYZMYKY3T', name: 'Relatório de Desempenho Ambiental.pdf' });
+    db.files.save({ _key: '01J7ZZ8ZQTC72K18Q6AV1XVQBB', name: 'Relatório de Desempenho Social.docx' });
+    db.files.save({ _key: '01J7ZZ93BMZYPN4MB5QNYNH75A', name: 'Relatório de Desempenho Econômico.pdf' });
+    db.files.save({ _key: '01J7ZZ999J1SV069TRWRXY3JR3', name: 'Relatório de Desempenho Operacional.docx' });
+    db.files.save({ _key: '01J7ZZ9D6ESC0Q42YG940TC1ZZ', name: 'Relatório de Desempenho Financeiro.pdf' });
+    db.files.save({ _key: '01J7ZZ9H66RYF373ZX4N4KVWV8', name: 'Relatório de Desempenho de Mercado.docx' });
+    db.files.save({ _key: '01J7ZZ9M9B02N3XJDNSQV17SVG', name: 'Relatório de Desempenho de Vendas.pdf' });
+
+    db.files.save({ _key: '01J7ZZ9Q7YC1HMEGRAMX60QVRP', name: 'Imagem1.jpg' });
+    db.files.save({ _key: '01J7ZZ9T530HSBVBS6R39B27SD', name: 'Imagem2.png' });
+    db.files.save({ _key: '01J7ZZ9ZRX966YB2ASS4ZMT3Q5', name: 'Imagem3.gif' });
+    db.files.save({ _key: '01J7ZZA328VAWA0QVT9MGP4JE2', name: 'Imagem4.bmp' });
+    db.files.save({ _key: '01J7ZZA6DQYZ1SYZ1ZPHVF36R3', name: 'Imagem5.tiff' });
+    db.files.save({ _key: '01J7ZZAAQR4KBHASWJ2D71FT73', name: 'Imagem6.jpeg' });
+    db.files.save({ _key: '01J7ZZAEH9ZV7EY17572SCYD4Y', name: 'Imagem7.svg' });
+    db.files.save({ _key: '01J7ZZAJ5E7B3NKDK1WMT37J4D', name: 'Imagem8.webp' });
+    db.files.save({ _key: '01J7ZZAPFHT99FTHFVQHV0BC7F', name: 'Imagem9.heic' });
+    db.files.save({ _key: '01J7ZZASV7JZD1FT3FNF6PZSET', name: 'Imagem10.raw' });
 }
 
 function assignFilesParentFolders() {
     console.log("Associando arquivos à diretórios...");
-    const rootFolderId = ids.folders.folder0Id;
-    const folderIds = Object.values(ids.folders).filter(id => id !== rootFolderId);
-    const fileIds = Object.values(ids.files);
+    
+    db.contains.save({ _from: 'folders/01J7ZWHHM3ZDTR1G049J28DBJ7', _to: 'files/01J7ZZ1VDM4ED91DTBS3E3BF1Y' });
+    db.contains.save({ _from: 'folders/01J7ZWHHM3ZDTR1G049J28DBJ7', _to: 'files/01J7ZZ1ZVAB3QNFFXWF1TWYJB5' });
+    db.contains.save({ _from: 'folders/01J7ZWHHM3ZDTR1G049J28DBJ7', _to: 'files/01J7ZZ28NMM2DPSDWDNF7ES6VV' });
+    db.contains.save({ _from: 'folders/01J7ZWHPDBN8ZCYK9XZPQY8XE7', _to: 'files/01J7ZZ2HJME0QG771NM9J53FCS' });
+    db.contains.save({ _from: 'folders/01J7ZWHPDBN8ZCYK9XZPQY8XE7', _to: 'files/01J7ZZ2NXW4V1RZKGTVT6RBS74' });
+    db.contains.save({ _from: 'folders/01J7ZWHPDBN8ZCYK9XZPQY8XE7', _to: 'files/01J7ZZ2T105MJPV68KEK0CR0W5' });
+    db.contains.save({ _from: 'folders/01J7ZWHW5AFC2SDB6VPPA9PKJC', _to: 'files/01J7ZZ2YJ8RQAT41F2PPHHRA2Q' });
+    db.contains.save({ _from: 'folders/01J7ZWHW5AFC2SDB6VPPA9PKJC', _to: 'files/01J7ZZ33K1KD1ZBS2P99AA68ZG' });
+    db.contains.save({ _from: 'folders/01J7ZWHW5AFC2SDB6VPPA9PKJC', _to: 'files/01J7ZZ37P9GRC5WFKFQYS6A3RE' });
+    db.contains.save({ _from: 'folders/01J7ZWH0YGY6G3V5MQ56ZDAVRP', _to: 'files/01J7ZZ3D3VD4Q80NCDBYNTPED8' });
 
-    function getRandomParentFolder() {
-        return folderIds[Math.floor(Math.random() * folderIds.length)];
-    }
+    db.contains.save({ _from: 'folders/01J7ZWH0YGY6G3V5MQ56ZDAVRP', _to: 'files/01J7ZZ3GX7EBNB5HX5VBVM4XTF' });
+    db.contains.save({ _from: 'folders/01J7ZWH0YGY6G3V5MQ56ZDAVRP', _to: 'files/01J7ZZ3N5AE661WGA4T51BFJ77' });
+    db.contains.save({ _from: 'folders/01J7ZWHCDB3YX8WHZKT732VX97', _to: 'files/01J7ZZ3SRB0MKPNXYQQHVR252Y' });
+    db.contains.save({ _from: 'folders/01J7ZWHCDB3YX8WHZKT732VX97', _to: 'files/01J7ZZ3XGJ12DE6B6PZF3RAY9T' });
+    db.contains.save({ _from: 'folders/01J7ZWHCDB3YX8WHZKT732VX97', _to: 'files/01J7ZZ41VDG813SJQV5B6SBP3X' });
+    db.contains.save({ _from: 'folders/01J7ZWJRWDY6ZNQ0RSWHTSZM3D', _to: 'files/01J7ZZ46NXCH814243BFDHFJZ6' });
+    db.contains.save({ _from: 'folders/01J7ZWJRWDY6ZNQ0RSWHTSZM3D', _to: 'files/01J7ZZ4DEZ92AHHH8AJV1JFT9A' });
+    db.contains.save({ _from: 'folders/01J7ZWJRWDY6ZNQ0RSWHTSZM3D', _to: 'files/01J7ZZ4JV92BYARMC7F78S9WVA' });
+    db.contains.save({ _from: 'folders/01J7ZWG3376RG9TNKBW18EFPWR', _to: 'files/01J7ZZ4SB4DF028X5RR61QH7RA' });
+    db.contains.save({ _from: 'folders/01J7ZWG3376RG9TNKBW18EFPWR', _to: 'files/01J7ZZ4Z37NEQJED9PN2EFQFFD' });
 
-    fileIds.forEach(fileId => {
-        const parentFolderId = getRandomParentFolder();
-        db.contains.save({ _from: 'folders/' + parentFolderId, _to: 'files/' + fileId });
-    });
+    db.contains.save({ _from: 'folders/01J7ZWG3376RG9TNKBW18EFPWR', _to: 'files/01J7ZZ53AS0CM69H28BMK5AYQK' });
+    db.contains.save({ _from: 'folders/01J7ZWH6NQXXHKS55JMASW083S', _to: 'files/01J7ZZ57WCBST6FRCE4SRHPM9J' });
+    db.contains.save({ _from: 'folders/01J7ZWH6NQXXHKS55JMASW083S', _to: 'files/01J7ZZ5C9G8PVC70JKWAFN7J8E' });
+    db.contains.save({ _from: 'folders/01J7ZWH6NQXXHKS55JMASW083S', _to: 'files/01J7ZZ5H1QQ1ZCH2QH2KJSZC1D' });
+    db.contains.save({ _from: 'folders/01J7ZWJ18N4J7CNP8JR9VRYFV9', _to: 'files/01J7ZZ6A2PCY9C101PQQ5RDR7F' });
+    db.contains.save({ _from: 'folders/01J7ZWJ18N4J7CNP8JR9VRYFV9', _to: 'files/01J7ZZ6G2W81JYM3G80NC46K82' });
+    db.contains.save({ _from: 'folders/01J7ZWJ18N4J7CNP8JR9VRYFV9', _to: 'files/01J7ZZ6NNCQ0QCK57QDTZZDPQK' });
+    db.contains.save({ _from: 'folders/01J7ZWJ5J3SN7EN0SVC6R276D8', _to: 'files/01J7ZZ6T7FKE30PRTVYEMY8FXR' });
+    db.contains.save({ _from: 'folders/01J7ZWJ5J3SN7EN0SVC6R276D8', _to: 'files/01J7ZZ6Y3BW2KN31R08GMW2X67' });
+    db.contains.save({ _from: 'folders/01J7ZWJ5J3SN7EN0SVC6R276D8', _to: 'files/01J7ZZ7442W76BHVWCWATYS5MS' });
+
+    db.contains.save({ _from: 'folders/01J7ZWJ9RZJB3GF5JFNDQVMGZN', _to: 'files/01J7ZZ78ZCNEVA3HKFC5JVJQES' });
+    db.contains.save({ _from: 'folders/01J7ZWJ9RZJB3GF5JFNDQVMGZN', _to: 'files/01J7ZZ7CDHQGVCQFP5DYGGBNTR' });
+    db.contains.save({ _from: 'folders/01J7ZWJ9RZJB3GF5JFNDQVMGZN', _to: 'files/01J7ZZ7GGRETK540BQHKWZ3JAQ' });
+    db.contains.save({ _from: 'folders/01J7ZWJDP3PAHYED1BAJZAXC0C', _to: 'files/01J7ZZ7KK4KDCMDSS4V99ANZ18' });
+    db.contains.save({ _from: 'folders/01J7ZWJDP3PAHYED1BAJZAXC0C', _to: 'files/01J7ZZ7R5BG2VDYPSPNJMK10Z3' });
+    db.contains.save({ _from: 'folders/01J7ZWJDP3PAHYED1BAJZAXC0C', _to: 'files/01J7ZZ7VD49FJMKNTQNA0HYKFM' });
+    db.contains.save({ _from: 'folders/01J7ZWJJ3N0GKSV651D83P4S6J', _to: 'files/01J7ZZ7Z86YN97BZKJ6K82A2X1' });
+    db.contains.save({ _from: 'folders/01J7ZWJJ3N0GKSV651D83P4S6J', _to: 'files/01J7ZZ836QB8H5CTR5MKNS6T47' });
+    db.contains.save({ _from: 'folders/01J7ZWJJ3N0GKSV651D83P4S6J', _to: 'files/01J7ZZ87WYJZSFKRPNY0R5F2S8' });
+    db.contains.save({ _from: 'folders/01J7ZWJWXH7BM621QH7DSM2WBE', _to: 'files/01J7ZZ8J1X5Y835E2B9ZNJPJEK' });
+
+    db.contains.save({ _from: 'folders/01J7ZWJWXH7BM621QH7DSM2WBE', _to: 'files/01J7ZZ8P4JCFS7MRMJNDSF0YFM' });
+    db.contains.save({ _from: 'folders/01J7ZWJWXH7BM621QH7DSM2WBE', _to: 'files/01J7ZZ8SCPEV7RN45R4KQ1M5S7' });
+    db.contains.save({ _from: 'folders/01J7ZWK0RKETKSVE39SK7HPKGB', _to: 'files/01J7ZZ8WS1AC1WXEZBYZMYKY3T' });
+    db.contains.save({ _from: 'folders/01J7ZWK0RKETKSVE39SK7HPKGB', _to: 'files/01J7ZZ8ZQTC72K18Q6AV1XVQBB' });
+    db.contains.save({ _from: 'folders/01J7ZWK0RKETKSVE39SK7HPKGB', _to: 'files/01J7ZZ93BMZYPN4MB5QNYNH75A' });
+    db.contains.save({ _from: 'folders/01J7ZWK5Y6X3XP289SYSWRK30F', _to: 'files/01J7ZZ999J1SV069TRWRXY3JR3' });
+    db.contains.save({ _from: 'folders/01J7ZWK5Y6X3XP289SYSWRK30F', _to: 'files/01J7ZZ9D6ESC0Q42YG940TC1ZZ' });
+    db.contains.save({ _from: 'folders/01J7ZWK5Y6X3XP289SYSWRK30F', _to: 'files/01J7ZZ9H66RYF373ZX4N4KVWV8' });
+    db.contains.save({ _from: 'folders/01J7ZWKADBREDNZT78WE4W6GK4', _to: 'files/01J7ZZ9M9B02N3XJDNSQV17SVG' });
+    db.contains.save({ _from: 'folders/01J7ZWKADBREDNZT78WE4W6GK4', _to: 'files/01J7ZZ9Q7YC1HMEGRAMX60QVRP' });
+
+    db.contains.save({ _from: 'folders/01J7ZWKADBREDNZT78WE4W6GK4', _to: 'files/01J7ZZ9T530HSBVBS6R39B27SD' });
+    db.contains.save({ _from: 'folders/01J7ZWKEDBK9X6G4053YBQ5RJH', _to: 'files/01J7ZZ9ZRX966YB2ASS4ZMT3Q5' });    
+    db.contains.save({ _from: 'folders/01J7ZWKEDBK9X6G4053YBQ5RJH', _to: 'files/01J7ZZASV7JZD1FT3FNF6PZSET' });    
+    db.contains.save({ _from: 'folders/01J7ZWKJN66WTK9YR6N09H4HYK', _to: 'files/01J7ZZA328VAWA0QVT9MGP4JE2' });
+    db.contains.save({ _from: 'folders/01J7ZXD5C39HZ2M66SYXXXGEDA', _to: 'files/01J7ZZA6DQYZ1SYZ1ZPHVF36R3' });
+    db.contains.save({ _from: 'folders/01J7ZXDBFWTPW88XNR4E583Y9A', _to: 'files/01J7ZZAAQR4KBHASWJ2D71FT73' });
+    db.contains.save({ _from: 'folders/01J7ZXDFCWN284EYJBPVTRBGBJ', _to: 'files/01J7ZZAJ5E7B3NKDK1WMT37J4D' });
+    db.contains.save({ _from: 'folders/01J7ZXDKNW7BKRKVP2KADRXSEG', _to: 'files/01J7ZZAPFHT99FTHFVQHV0BC7F' });
 }
 
 function createPersons() {
-    console.log("Criando arquivos...");
-    const names = [
-        'Chrystopher', 'Roberta', 'Levi', 'Jesus', 'Mizael', 
-        'Aline', 'Leandro', 'Porfírio', 'Alan', 'Aislan', 
-        'Nuno', 'Paola', 'Flavio Guilherme', 'Mauro', 'Débora', 
-        'Silvana', 'Jabner', 'Cláudia', 'Cristina', 'Victor'        
-    ];
-    const selectedNames = getRandomUniqueNames(names, 20);
-    const newIds = selectedNames.map(() => generateULID());
+    console.log("Criando pessoas...");
     
-    const rootGroupId = generateULID();
-    db.groups.save({ _key: rootGroupId, name: 'Todos os Usuários', systemGroup: true });
+    db.persons.save({ _key: '01J802WM7JT3N7RG6HRM1BHRDX', name: 'Chrystopher' });
+    db.persons.save({ _key: '01J802Y0WY740P9KE33TZ1KMJD', name: 'Roberta' });
+    db.persons.save({ _key: '01J802Y41VZ4Z7FJJS9R13ZRZW', name: 'Levi' });
+    db.persons.save({ _key: '01J802Y6SV2CE8ZPW4FPP93R51', name: 'Jesus' });
+    db.persons.save({ _key: '01J802YDHH4BE64X4S7S8N4NQV', name: 'Mizael' });
+    db.persons.save({ _key: '01J802YGRYG60MA7Y7DEWYTMWX', name: 'Aline' });
+    db.persons.save({ _key: '01J802YM2CZD8XAWKQJR6668F4', name: 'Leandro' });
+    db.persons.save({ _key: '01J802YVE527MX8D0M84G2DHVS', name: 'Porfírio' });
+    db.persons.save({ _key: '01J802Z02CSK2YZGK0RZ8TXRTQ', name: 'Alan' });
+    db.persons.save({ _key: '01J802Z3Z51X0ZHCRW873VP4V5', name: 'Aislan' });
 
-    newIds.forEach((id, index) => {        
-        ids.persons[`person${index}Id`] = id;
-        let groupId = generateULID();
-        db.persons.save({ _key: id, name: selectedNames[index] });
-        db.groups.save({ _key: groupId, name: '_grupo_' + selectedNames[index], systemGroup: true });
-        db.groups_persons.save({ _from: 'groups/' + groupId, _to: 'persons/' + id });
-        db.groups_persons.save({ _from: 'groups/' + rootGroupId, _to: 'persons/' + id });
-    });
+    db.persons.save({ _key: '01J802Z7VPMEAHX1N1819W4YSJ', name: 'Nuno' });
+    db.persons.save({ _key: '01J802ZAHCRJPXYPCHDBTMK8ZR', name: 'Paola' });
+    db.persons.save({ _key: '01J802ZDQ7GNWT85AYDQAHEK92', name: 'Flavio Guilherme' });
+    db.persons.save({ _key: '01J802ZKWJF3PZFJ4W33K4M1DJ', name: 'Mauro' });
+    db.persons.save({ _key: '01J802ZQJXBZFFQ5FGFS16JRH8', name: 'Débora' });
+    db.persons.save({ _key: '01J802ZTWMEKKB6QH6JMZZHBCV', name: 'Silvana' });
+    db.persons.save({ _key: '01J802ZYZZCVD99G3H09DSZEFB', name: 'Jabner' });
+    db.persons.save({ _key: '01J80303C7TRT1ZAMC7DDRFHFC', name: 'Cláudia' });
+    db.persons.save({ _key: '01J80307AF7GV81PG93K4RAF14', name: 'Cristina' });
+    db.persons.save({ _key: '01J8030ADXKPAH3WN2HCDF9FWP', name: 'Victor' });
 }
 
 
 function createGroups() {
     console.log("Criando grupos...");
-    const names = [
-        'Administradores', 'Usuários', 'Gerentes', 'Desenvolvedores', 'Recursos Humanos', 
-        'Financeiro', 'Auditores', 'Convidados', 'Suporte Técnico', 'Implantadores'
-    ];
-    const selectedNames = getRandomUniqueNames(names, 10);
-    const newIds = selectedNames.map(() => generateULID());
-
-    newIds.forEach((id, index) => {
-        ids.groups[`group${index}Id`] = id;
-        db.groups.save({ _key: id, name: selectedNames[index], systemGroup: false });
-    });
+    
+    db.groups.save({ _key: '01J8032RSHAJDFPYC05DS5JA7F', name: 'Administradores', systemGroup: false });    
+    db.groups.save({ _key: '01J8035694ANSQX7N0HFKD7DJM', name: 'Gerentes', systemGroup: false });
+    db.groups.save({ _key: '01J8035B02DXGWDWK7XVHRXQ0P', name: 'Desenvolvedores', systemGroup: false });
+    db.groups.save({ _key: '01J8035FHBRXKT7MHAR75EWZZE', name: 'Marketing', systemGroup: false });
+    db.groups.save({ _key: '01J8035MFW1A6HTNC0S8FPBGVR', name: 'Financeiro', systemGroup: false });
+    db.groups.save({ _key: '01J8035T6CCSPFW0Y7SD2R8Z93', name: 'Auditores', systemGroup: false });
+    db.groups.save({ _key: '01J8035Y1Z5BXWD9PEJER856GA', name: 'Estagiários', systemGroup: false });
+    db.groups.save({ _key: '01J80362ZEF501TXRTVXXK6TRY', name: 'Suporte Técnico', systemGroup: false });
+    db.groups.save({ _key: '01J80366MXTG1QGG1TF6SQX4YT', name: 'Implantadores', systemGroup: false }); 
 }
 
 function assignPersonsToGroups() {
     console.log("Associando pessoas à grupos...");    
-    const groupIds = Object.values(ids.groups);
-    const personIds = Object.values(ids.persons);
-
-    function getRandomGroup() {
-        return groupIds[Math.floor(Math.random() * groupIds.length)];
-    }
-
-    personIds.forEach(personId => {
-        const groupId = getRandomGroup();
-        db.groups_persons.save({ _from: 'groups/' + groupId, _to: 'persons/' + personId });
-    });
+    
+    db.memberOf.save({ _from: 'groups/01J80366MXTG1QGG1TF6SQX4YT', _to: 'persons/01J802WM7JT3N7RG6HRM1BHRDX' });
+    db.memberOf.save({ _from: 'groups/01J80366MXTG1QGG1TF6SQX4YT', _to: 'persons/01J802Y6SV2CE8ZPW4FPP93R51' });
+    db.memberOf.save({ _from: 'groups/01J8035694ANSQX7N0HFKD7DJM', _to: 'persons/01J802YVE527MX8D0M84G2DHVS' });
+    db.memberOf.save({ _from: 'groups/01J8035694ANSQX7N0HFKD7DJM', _to: 'persons/01J802YGRYG60MA7Y7DEWYTMWX' });
+    db.memberOf.save({ _from: 'groups/01J8035B02DXGWDWK7XVHRXQ0P', _to: 'persons/01J8030ADXKPAH3WN2HCDF9FWP' });
+    db.memberOf.save({ _from: 'groups/01J8035B02DXGWDWK7XVHRXQ0P', _to: 'persons/01J802Y41VZ4Z7FJJS9R13ZRZW' });
+    db.memberOf.save({ _from: 'groups/01J8035B02DXGWDWK7XVHRXQ0P', _to: 'persons/01J802ZDQ7GNWT85AYDQAHEK92' });
+    db.memberOf.save({ _from: 'groups/01J8035B02DXGWDWK7XVHRXQ0P', _to: 'persons/01J802YDHH4BE64X4S7S8N4NQV' });
+    db.memberOf.save({ _from: 'groups/01J8035B02DXGWDWK7XVHRXQ0P', _to: 'persons/01J802Z02CSK2YZGK0RZ8TXRTQ' });
+    db.memberOf.save({ _from: 'groups/01J8035B02DXGWDWK7XVHRXQ0P', _to: 'persons/01J802ZKWJF3PZFJ4W33K4M1DJ' });
+    db.memberOf.save({ _from: 'groups/01J8035Y1Z5BXWD9PEJER856GA', _to: 'persons/01J802Z3Z51X0ZHCRW873VP4V5' });
+    db.memberOf.save({ _from: 'groups/01J8035MFW1A6HTNC0S8FPBGVR', _to: 'persons/01J80303C7TRT1ZAMC7DDRFHFC' });
+    db.memberOf.save({ _from: 'groups/01J8035MFW1A6HTNC0S8FPBGVR', _to: 'persons/01J802ZTWMEKKB6QH6JMZZHBCV' });
+    db.memberOf.save({ _from: 'groups/01J8035MFW1A6HTNC0S8FPBGVR', _to: 'persons/01J802ZQJXBZFFQ5FGFS16JRH8' });
+    db.memberOf.save({ _from: 'groups/01J8035MFW1A6HTNC0S8FPBGVR', _to: 'persons/01J80303C7TRT1ZAMC7DDRFHFC' });
+    db.memberOf.save({ _from: 'groups/01J80362ZEF501TXRTVXXK6TRY', _to: 'persons/01J802ZYZZCVD99G3H09DSZEFB' });
+    db.memberOf.save({ _from: 'groups/01J80362ZEF501TXRTVXXK6TRY', _to: 'persons/01J80307AF7GV81PG93K4RAF14' });
+    db.memberOf.save({ _from: 'groups/01J8032RSHAJDFPYC05DS5JA7F', _to: 'persons/01J802Y0WY740P9KE33TZ1KMJD' });
+    db.memberOf.save({ _from: 'groups/01J8032RSHAJDFPYC05DS5JA7F', _to: 'persons/01J802YM2CZD8XAWKQJR6668F4' });
+    db.memberOf.save({ _from: 'groups/01J8035FHBRXKT7MHAR75EWZZE', _to: 'persons/01J802Z7VPMEAHX1N1819W4YSJ' });
+    db.memberOf.save({ _from: 'groups/01J8035FHBRXKT7MHAR75EWZZE', _to: 'persons/01J802ZAHCRJPXYPCHDBTMK8ZR' });
+    db.memberOf.save({ _from: 'groups/01J8035T6CCSPFW0Y7SD2R8Z93', _to: 'persons/01J802YGRYG60MA7Y7DEWYTMWX' });
 }
 
 function assignPermissionsToFolders() {
     console.log("Criando permissões para diretórios...");
 
-    const actions = [
-        'Ler', 'Escrever', 'Compartilhar', 'Excluir', 'Editar', 
-        'Mover', 'Download', 'Criar', 'Renomear', 'Enviar para lixeira', 
-        'Restaurar', 'Visualizar', 'Copiar', 'Alterar permissões'
-    ];
+    db.permissions.save({ _from: 'groups/01J80366MXTG1QGG1TF6SQX4YT' , _to: 'folders/01J7ZWDZFFA3N8859WPJ411482', action: 'Ler' });
+    
+    db.permissions.save({ _from: 'groups/01J8032RSHAJDFPYC05DS5JA7F', _to: 'folders/01J7ZWHHM3ZDTR1G049J28DBJ7', action: 'Ler' });
+    db.permissions.save({ _from: 'groups/01J8032RSHAJDFPYC05DS5JA7F', _to: 'folders/01J7ZWHPDBN8ZCYK9XZPQY8XE7', action: 'Ler' });
+    db.permissions.save({ _from: 'groups/01J8032RSHAJDFPYC05DS5JA7F', _to: 'folders/01J7ZWHPDBN8ZCYK9XZPQY8XE7', action: 'Ler' });
 
-    const folderIds = getRandomUniqueNames(Object.values(ids.folders), 10);
-    const groupIds = Object.values(ids.groups);
-
-    folderIds.forEach(folderId => {
-        const selectedGroups = getRandomUniqueNames(groupIds, 2);
-
-        selectedGroups.forEach(groupId => {
-            const selectedActions = getRandomUniqueNames(actions, 1);
-
-            selectedActions.forEach(action => {
-                db.permissions.save({
-                    _from: 'groups/' + groupId,
-                    _to: 'folders/' + folderId,
-                    action: action
-                });
-            });
-        });
-    });
+    db.permissions.save({ _from: 'groups/01J8035T6CCSPFW0Y7SD2R8Z93', _to: 'folders/01J7ZWDZFFA3N8859WPJ411482', action: 'Ler' });
+    db.permissions.save({ _from: 'groups/01J8035T6CCSPFW0Y7SD2R8Z93', _to: 'folders/01J7ZWJRWDY6ZNQ0RSWHTSZM3D', action: 'Escrita' });   
 }
 
 function assignPermissionsToFiles() {
     console.log("Criando permissões para arquivos...");
 
-    const actions = [
-        'Ler', 'Escrever', 'Compartilhar', 'Excluir', 'Editar', 
-        'Mover', 'Download', 'Criar', 'Renomear', 'Enviar para lixeira', 
-        'Restaurar', 'Visualizar', 'Copiar', 'Alterar permissões'
-    ];
-
-    const fileIds = getRandomUniqueNames(Object.values(ids.files), 25);
-    const groupIds = Object.values(ids.groups);
-
-    fileIds.forEach(fileId => {
-        const selectedGroups = getRandomUniqueNames(groupIds, 2);
-
-        selectedGroups.forEach(groupId => {
-            const selectedActions = getRandomUniqueNames(actions, 1);
-
-            selectedActions.forEach(action => {
-                db.permissions.save({
-                    _from: 'groups/' + groupId,
-                    _to: 'files/' + fileId,
-                    action: action
-                });
-            });
-        });
-    });
-}
-
-function ensureImplantadoresPermissions() {
-    console.log("Garantindo que o grupo Implantadores tenha todas as permissões na Pasta Raiz...");    
-    const implantadoresGroupId = Object.values(ids.groups).find(groupId => db.groups.document(groupId).name === 'Implantadores');
-    const rootFolderId = ids.folders['folderRootId'];
-
-    const actions = [
-        'Ler', 'Escrever', 'Compartilhar', 'Excluir', 'Editar', 
-        'Mover', 'Download', 'Criar', 'Renomear', 'Enviar para lixeira', 
-        'Restaurar', 'Visualizar', 'Copiar', 'Alterar permissões'
-    ];
-
-    if (implantadoresGroupId) {        
-        const members = db.groups_persons.byExample({ _from: 'groups/' + implantadoresGroupId });
-        if (members.count() === 0) {            
-            const randomPersonId = Object.values(ids.persons)[0];
-            db.groups_persons.save({ _from: 'groups/' + implantadoresGroupId, _to: 'persons/' + randomPersonId });
-        }
-
-        actions.forEach(action => {
-            const existingPermission = db.permissions.firstExample({ _from: 'groups/' + implantadoresGroupId, _to: 'folders/' + rootFolderId, action: action });
-            if (!existingPermission) {
-                db.permissions.save({
-                    _from: 'groups/' + implantadoresGroupId,
-                    _to: 'folders/' + rootFolderId,
-                    action: action
-                });
-            }
-        });
-    } else {
-        console.error("Grupo Implantadores não encontrado.");
-    }
-}
-
-function checkPermission(user, resource, action) {
-    const groups = db._query(`
-        FOR gp IN groups_persons
-            FILTER gp._to == @user
-            RETURN gp._from
-    `, { user: 'persons/' + user }).toArray();
-
-    const permissions = db._query(`
-        FOR p IN permissions
-            FILTER p._from IN @groups AND p._to == @resource AND p.action == @action
-            RETURN p
-    `, { groups, resource: 'folders/' + resource, action }).toArray();
-
-    return permissions.length > 0;
-}
-
-function validatePermission(){
-    console.log("Validando permissões ...");
-    const implantadoresGroupId = Object.values(ids.groups).find(groupId => db.groups.document(groupId).name === 'Implantadores');
-    const implantadoresMembers = db.groups_persons.byExample({ _from: 'groups/' + implantadoresGroupId }).toArray();
-    const user = implantadoresMembers.length > 0 ? implantadoresMembers[0]._to.split('/')[1] : null;
-    const resource = ids.folders['folderRootId'];
-
-    if (user) {
-        const userName = db.persons.document('persons/' + user).name;
-        const hasPermission = checkPermission(user, resource, 'Ler');
-        console.log(`Usuário ${userName} tem permissão de leitura no diretório raiz: ${hasPermission}`);
-    } else {
-        console.error("Nenhum usuário encontrado no grupo Implantadores.");
-    }
+    db.permissions.save({ _from: 'groups/01J8035Y1Z5BXWD9PEJER856GA', _to: 'files/01J7ZZ37P9GRC5WFKFQYS6A3RE', action: "Ler" });
+    db.permissions.save({ _from: 'groups/01J8035Y1Z5BXWD9PEJER856GA', _to: 'files/01J7ZZ1VDM4ED91DTBS3E3BF1Y', action: "Ler" });
+    db.permissions.save({ _from: 'groups/01J8035Y1Z5BXWD9PEJER856GA', _to: 'files/01J7ZZ8J1X5Y835E2B9ZNJPJEK', action: "Ler" });
 }
 
 function main() {
@@ -403,9 +395,7 @@ function main() {
     assignPersonsToGroups();    
     assignPermissionsToFolders();
     assignPermissionsToFiles();
-    ensureImplantadoresPermissions();
-    validatePermission();
-    
+
     console.log("Configuração da base de dados finalizada.");
 }
 

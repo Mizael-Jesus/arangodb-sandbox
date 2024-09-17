@@ -35,7 +35,7 @@ erDiagram
         string _from
         string _to
     }
-    Groups_Persons {
+    MemberOf {
         string _from
         string _to
     }
@@ -47,8 +47,8 @@ erDiagram
 
     Folders ||--o{ Contains: contains
     Files ||--o{ Contains: contains
-    Groups ||--o{ Groups_Persons: groups_persons
-    Persons ||--o{ Groups_Persons: groups_persons
+    Groups ||--o{ MemberOf: memberOf
+    Persons ||--o{ MemberOf: memberOf
     Groups ||--o{ Permissions: permissions
     Folders ||--o{ Permissions: permissions
     Files ||--o{ Permissions: permissions
@@ -99,31 +99,6 @@ Senha: password
 Banco de dados: file_system_management_db
 ```
 
-### Consultas e views AQL
+## Consultas AQL
 
-#### Permissões 
-
-View:
-```bash
-FOR doc IN permissions_view
-RETURN doc
-```
-
-Exemplo da mesma view utilizando filtros:
-```bash
-FOR doc IN permissions_view
-RETURN doc
-```
-
-Consulta AQL com o mesmo propósito: 
-```bash
-FOR permission IN permissions
-    FILTER permission._from == CONCAT('groups/', @groupId)
-    LET target = DOCUMENT(permission._to)
-    LET group = DOCUMENT(permission._from)
-    RETURN {
-        groupName: group.name,
-        targetName: target.name,
-        action: permission.action
-    }
-```
+[Consultas AQL](AQL.md)

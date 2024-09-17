@@ -1,102 +1,99 @@
-/*---------------------
-  -- DIRETÓRIOS
-  ---------------------*/
-LET rootDirectory = "folders/01I7TUODFV642ON0KQ9OKRPTSW"
-LET directories = (
-  FOR v, e, p IN 1..999 OUTBOUND rootDirectory contains
-    FILTER v._id LIKE "folders/%"
-    LET ancestors = (
-        FOR ancestor IN 1..999 INBOUND v._id contains
-        FILTER ancestor._id LIKE "folders/%"
-        RETURN ancestor.name
-    )
-    LET fullPath = (
-        CONCAT(CONCAT_SEPARATOR("/", SLICE(ancestors, 0, LENGTH(ancestors))), CONCAT("/", v.name))
-    )
-    RETURN {
-        "id": v._id,
-        "name": v.name,
-        "fullPath": fullPath
-    }
-)
-RETURN directories
+# Consultas AQL
 
-LET rootFolder = "folders/01I7TUODFV642ON0KQ9OKRPTSW"
+## Diretórios
+Lista a hierarquia de diretórios filhos a partir de um diretório específico:
+
+```bash
+LET startFolder = "folders/01J7ZWJRWDY6ZNQ0RSWHTSZM3D" 
+LET folders = ( 
+  FOR v, e, p IN 1..999 OUTBOUND startFolder contains 
+  FILTER v._id LIKE "folders/%" 
+  RETURN { "path": CONCAT_SEPARATOR("/", p.vertices[*].name) } 
+) 
+RETURN folders
+```
+
+Lista a estrutura de diretórios ancestrais a partir de um diretório específico:
+
+```bash
+LET startFolder = "folders/01J7ZWK0RKETKSVE39SK7HPKGB"
 LET folders = (
-    FOR v, e, p IN 1..999 OUTBOUND rootFolder contains
-      FILTER v._id LIKE "folders/%"
-      RETURN {
-        "path": CONCAT_SEPARATOR("/", p.vertices[*].name)
-      }
+  FOR v, e, p IN 1..999 INBOUND startFolder contains
+  FILTER v._id LIKE "folders/%"
+  RETURN { "path": CONCAT_SEPARATOR("/", REVERSE(p.vertices[*].name)) }
 )
 RETURN folders
+```
 
-FOR d IN folders
-SORT d.name
-RETURN d
+Conteúdo de um diretório específico:
 
-
-
-
-
-
-/*---------------------
-  -- GRUPOS
-  ---------------------*/
-FOR g IN groups
-FILTER g.systemGroup == false
-//  AND g.name == 'Implantadores'
-SORT g.name
-RETURN {
-    "id": g._id,
-    "name": g.name
-}
-
-/*---------------------
-  -- PERMISSÕES
-  ---------------------*/
-FOR p IN permissions
-  FOR g IN groups
-      FILTER p._from == g._id
-  FOR f IN files
-      FILTER p._to == f._id
-  SORT g.name, f.name
-  RETURN {
-      "groupName": g.name,
-      "resourceName": f.name,
-      "action": p.action
-  }
-  
-FOR p IN permissions
-  FOR g IN groups
-      FILTER p._from == g._id
-  FOR f IN files
-      FILTER p._to == f._id
-  LET fullPath = (
-      FOR v, e IN 1..999 INBOUND f._id contains
-      SORT v._key
-      RETURN v.name
-  )
-  SORT g.name, CONCAT(CONCAT_SEPARATOR("/", fullPath), CONCAT("/", f.name))
-  RETURN {
-      "groupName": g.name,
-      "resourceFullPath": CONCAT(CONCAT_SEPARATOR("/", fullPath), CONCAT("/", f.name))
-  }
-
-
-/*
-PERMISSÕES - POR GRUPO
-*/
-LET groupId = "groups/01I7TUODRPLHCGUYRF8PH8EVAT"
-LET directoriesWithAccess = (
-  FOR p IN permissions
-  FILTER p._from == groupId
-  FOR f IN folders
-    FILTER p._to == f._id 
-    RETURN {
-        "directoryId": f._id,
-        "directoryName": f.name,
-        "accessType": p.action
-    }
+```bash
+LET startFolder = "folders/01J7ZWH0YGY6G3V5MQ56ZDAVRP" 
+LET files = ( 
+  FOR v, e, p IN 1..1 OUTBOUND startFolder contains 
+  FILTER v._id LIKE "files/%" 
+  RETURN { "path": CONCAT_SEPARATOR("/", p.vertices[*].name) } 
 )
-RETURN directoriesWithAccess
+LET folders = ( 
+  FOR v, e, p IN 1..1 OUTBOUND startFolder contains 
+  FILTER v._id LIKE "folders/%" 
+  RETURN { "path": CONCAT_SEPARATOR("/", p.vertices[*].name) } 
+) 
+RETURN { folders, files }
+```
+
+## Grupos
+
+Membros de um grupo específico:
+
+```bash
+LET groupId = "groups/01J80366MXTG1QGG1TF6SQX4YT"
+LET members = (
+  FOR user IN 1..1 OUTBOUND groupId memberOf
+  RETURN user
+)
+LET persons = (
+  FOR user IN members
+  SORT user.name ASC
+  RETURN { "name": user.name }
+)
+RETURN persons
+```
+
+## Pessoas
+
+Listagem de pessoas: 
+
+```bash
+FOR p IN persons
+SORT p.name ASC
+RETURN { "id": p._id, "name": p.name }
+```
+
+De quais grupos uma pessoa espefiífica participa:
+
+```bash
+LET personId = "persons/01J802YGRYG60MA7Y7DEWYTMWX"
+LET members = (
+  FOR group IN 1..1 INBOUND personId memberOf
+  RETURN group
+)
+LET groups = (
+  FOR group IN members
+  SORT group.name ASC
+  RETURN { "name": group.name }
+)
+RETURN groups
+```
+
+## Permissões
+
+Recursos aos quais um grupo tem privilégios diretamente:
+```bash
+FOR permission IN permissions
+  FILTER permission._from == 'groups/01J80366MXTG1QGG1TF6SQX4YT'
+  LET target = DOCUMENT(permission._to)
+  LET group = DOCUMENT(permission._from)
+  SORT group.name ASC, target.name ASC
+  RETURN { groupName: group.name, targetName: target.name, action: permission.action }
+```
