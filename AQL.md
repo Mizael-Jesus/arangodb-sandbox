@@ -98,7 +98,7 @@ FOR permission IN permissions
   RETURN { groupName: group.name, targetName: target.name, action: permission.action }
 ```
 
-Verifica quais ações são permitidas a um grupo, diretamente ou herdado de diretórios superiores
+Verifica quais ações são permitidas a um grupo, diretamente ou herdado de diretórios ancestrais
 ```bash
 LET folderId = "01J7ZWJRWDY6ZNQ0RSWHTSZM3D"
 LET groupId = "01J8032RSHAJDFPYC05DS5JA7F"
@@ -117,4 +117,33 @@ LET permissions = (
     RETURN p.action
 )
 RETURN UNIQUE(permissions)
+```
+
+Verifica se um grupo tem determinada permissão em um arquivo, diretamente ou herdado de diretórios ancestrais
+```bash
+LET groupId = "01J8032RSHAJDFPYC05DS5JA7F"
+LET fileId = "01J7ZZ46NXCH814243BFDHFJZ6"
+LET permission = "Leitura"
+
+LET specificPermission = (
+  FOR p IN permissions
+    FILTER CONTAINS(groupId, SPLIT(p._from, "/")[1])
+    FILTER CONTAINS(fileId, SPLIT(p._to, "/")[1])
+    FILTER p.action == permission
+    RETURN p.action
+)
+
+LET folderIds = (
+  FOR doc IN 1..999 INBOUND CONCAT("files/", fileId) contains
+  RETURN SPLIT(doc._id, "/")[1]
+)
+
+LET permissions = (
+  FOR p IN permissions
+    FILTER CONTAINS(groupId, SPLIT(p._from, "/")[1])
+    FILTER CONTAINS(folderIds, SPLIT(p._to, "/")[1])
+    FILTER p.action == permission
+    RETURN p.action
+)
+RETURN UNIQUE(UNION(FLATTEN(UNIQUE(permissions)), specificPermission))
 ```
