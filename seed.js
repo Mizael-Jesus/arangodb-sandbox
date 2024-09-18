@@ -64,37 +64,6 @@ function createGraphs() {
     );
 }
 
-function createView() {
-    console.log("Criando view para consulta de permissões...");
-
-    db._createView('permissions_view', 'arangosearch', {
-        links: {
-            permissions: {
-                includeAllFields: true,
-                fields: {
-                    _from: { analyzers: ['identity'] },
-                    _to: { analyzers: ['identity'] },
-                    action: { analyzers: ['identity'] }
-                }
-            },
-            groups: {
-                includeAllFields: true,
-                fields: {
-                    name: { analyzers: ['identity'] }
-                }
-            }
-        }
-    });
-
-    db._query(`
-        FOR permission IN permissions
-        FILTER permission._from == CONCAT('groups/', @groupId)
-        LET target = DOCUMENT(permission._to)
-        LET group = DOCUMENT(permission._from)
-        RETURN { groupName: group.name, targetName: target.name, action: permission.action }
-    `, { groupId: '@groupId' }).toArray();
-}
-
 function createFolders() {
     console.log("Criando diretórios...");
 
@@ -361,22 +330,25 @@ function assignPersonsToGroups() {
 function assignPermissionsToFolders() {
     console.log("Criando permissões para diretórios...");
 
-    db.permissions.save({ _from: 'groups/01J80366MXTG1QGG1TF6SQX4YT' , _to: 'folders/01J7ZWDZFFA3N8859WPJ411482', action: 'Ler' });
+    db.permissions.save({ _from: 'groups/01J80366MXTG1QGG1TF6SQX4YT' , _to: 'folders/01J7ZWDZFFA3N8859WPJ411482', action: 'Leitura' });
     
-    db.permissions.save({ _from: 'groups/01J8032RSHAJDFPYC05DS5JA7F', _to: 'folders/01J7ZWHHM3ZDTR1G049J28DBJ7', action: 'Ler' });
-    db.permissions.save({ _from: 'groups/01J8032RSHAJDFPYC05DS5JA7F', _to: 'folders/01J7ZWHPDBN8ZCYK9XZPQY8XE7', action: 'Ler' });
-    db.permissions.save({ _from: 'groups/01J8032RSHAJDFPYC05DS5JA7F', _to: 'folders/01J7ZWHPDBN8ZCYK9XZPQY8XE7', action: 'Ler' });
+    db.permissions.save({ _from: 'groups/01J8032RSHAJDFPYC05DS5JA7F', _to: 'folders/01J7ZWHHM3ZDTR1G049J28DBJ7', action: 'Leitura' });
+    db.permissions.save({ _from: 'groups/01J8032RSHAJDFPYC05DS5JA7F', _to: 'folders/01J7ZWHPDBN8ZCYK9XZPQY8XE7', action: 'Leitura' });
+    db.permissions.save({ _from: 'groups/01J8032RSHAJDFPYC05DS5JA7F', _to: 'folders/01J7ZWHPDBN8ZCYK9XZPQY8XE7', action: 'Leitura' });
 
-    db.permissions.save({ _from: 'groups/01J8035T6CCSPFW0Y7SD2R8Z93', _to: 'folders/01J7ZWDZFFA3N8859WPJ411482', action: 'Ler' });
+    db.permissions.save({ _from: 'groups/01J8035T6CCSPFW0Y7SD2R8Z93', _to: 'folders/01J7ZWDZFFA3N8859WPJ411482', action: 'Leitura' });
     db.permissions.save({ _from: 'groups/01J8035T6CCSPFW0Y7SD2R8Z93', _to: 'folders/01J7ZWJRWDY6ZNQ0RSWHTSZM3D', action: 'Escrita' });   
 }
 
 function assignPermissionsToFiles() {
     console.log("Criando permissões para arquivos...");
 
-    db.permissions.save({ _from: 'groups/01J8035Y1Z5BXWD9PEJER856GA', _to: 'files/01J7ZZ37P9GRC5WFKFQYS6A3RE', action: "Ler" });
-    db.permissions.save({ _from: 'groups/01J8035Y1Z5BXWD9PEJER856GA', _to: 'files/01J7ZZ1VDM4ED91DTBS3E3BF1Y', action: "Ler" });
-    db.permissions.save({ _from: 'groups/01J8035Y1Z5BXWD9PEJER856GA', _to: 'files/01J7ZZ8J1X5Y835E2B9ZNJPJEK', action: "Ler" });
+    db.permissions.save({ _from: 'groups/01J8035Y1Z5BXWD9PEJER856GA', _to: 'files/01J7ZZ37P9GRC5WFKFQYS6A3RE', action: "Leitura" });
+    db.permissions.save({ _from: 'groups/01J8035Y1Z5BXWD9PEJER856GA', _to: 'files/01J7ZZ1VDM4ED91DTBS3E3BF1Y', action: "Leitura" });
+    db.permissions.save({ _from: 'groups/01J8035Y1Z5BXWD9PEJER856GA', _to: 'files/01J7ZZ8J1X5Y835E2B9ZNJPJEK', action: "Leitura" });
+
+    db.permissions.save({ _from: 'groups/01J8032RSHAJDFPYC05DS5JA7F', _to: "files/01J7ZZ4DEZ92AHHH8AJV1JFT9A", action: "Escrita" });
+    db.permissions.save({ _from: 'groups/01J8032RSHAJDFPYC05DS5JA7F', _to: "files/01J7ZZ4JV92BYARMC7F78S9WVA", action: "Leitura" });    
 }
 
 function main() {
@@ -385,7 +357,6 @@ function main() {
     createDatabase(dbName);
     createCollections();
     createGraphs();
-    createView();
     createFolders();
     assignFolderParentFolders();
     createFiles();
