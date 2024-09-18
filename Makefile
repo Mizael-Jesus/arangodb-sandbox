@@ -30,8 +30,6 @@ clean:
 	@echo "🧹 Limpando volumes e dados persistentes..."
 	docker stop $(ARANGO_DB_NAME)
 	docker rm $(ARANGO_DB_NAME)
-	docker container prune
-	docker volume prune
 	@echo "📦 Removendo as imagens de contêineres..."
 	docker rmi $(shell docker images -q)
 
