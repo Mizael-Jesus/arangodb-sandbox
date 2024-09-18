@@ -98,77 +98,26 @@ FOR permission IN permissions
   RETURN { groupName: group.name, targetName: target.name, action: permission.action }
 ```
 
-## Em progresso (consulta ainda incompleta)
-
+Verifica quais ações são permitidas a um grupo, diretamente ou herdado de diretórios superiores
 ```bash
-LET groupId = "groups/01J8032RSHAJDFPYC05DS5JA7F"
-LET rootFolderId = "folders/01J7ZWJ5J3SN7EN0SVC6R276D8"
+LET folderId = "01J7ZWJRWDY6ZNQ0RSWHTSZM3D"
+LET groupId = "01J8032RSHAJDFPYC05DS5JA7F"
 
-LET folderHierarchy = (
-  FOR v, e, p IN 1..999 INBOUND rootFolderId contains
-    FILTER v._id LIKE "folders/%"
-    RETURN {
-      "id": v._id,
-      "level": LENGTH(p.edges)
-    }
+LET folderDocuments = (
+  FOR doc IN 1..999 INBOUND CONCAT("folders/", folderId) contains
+  FILTER doc._id LIKE "folders/%"
+    RETURN SPLIT(doc._id, "/")[1]
 )
+LET folderIds = UNION(folderDocuments, [folderId])
 
-LET sortedFolders = (
-  FOR folder IN folderHierarchy
-  SORT folder.level DESC
-  RETURN folder
+LET permissions = (
+  FOR p IN permissions
+    FILTER CONTAINS(groupId, SPLIT(p._from, "/")[1])
+    FILTER CONTAINS(folderIds, SPLIT(p._to, "/")[1])
+    RETURN p.action
 )
-
-LET folderPermissions = (
-  FOR folder IN sortedFolders
-  FOR perm IN permissions
-    FILTER perm._from == groupId
-    FILTER perm._to == folder.id
-    RETURN { "id": folder.id, "action": perm.action }
-)
-//RETURN folderPermissions
-
-LET permissionsByFolder = (
-  FOR perm IN folderPermissions
-  COLLECT folder = perm.id INTO perms
-  RETURN {
-    "id": folder,
-    "action": perm.action,
-    "permissions": UNIQUE(
-      FOR p IN perms RETURN p.action
-    )
-  }
-)
-RETURN permissionsByFolder
-
-
-LET propagatedPermissions = (
-  FOR folder IN sortedFolders
-  LET parentFolders = (
-    FOR v, e, p IN 1..999 INBOUND folder.id contains
-      FILTER v._id LIKE "folders/%"
-      RETURN v._id
-  )
-  LET parentPermissions = (
-    FOR parent IN parentFolders
-    FOR perm IN permissionsByFolder
-      FILTER perm.id == parent
-      RETURN perm.permissions
-  )
-  LET allPermissions = (
-    UNION_DISTINCT(
-      FOR perm IN parentPermissions RETURN perm,
-      FOR perm IN permissionsByFolder
-        FILTER perm.id == folder.id
-        RETURN perm.permissions
-    )
-  )
-  
-  RETURN {
-    "id": folder.id,
-    "permissions": UNIQUE(FLATTEN(allPermissions))
-  }
-)
+RETURN UNIQUE(permissions)
+```
 
 RETURN propagatedPermissions
 ```
