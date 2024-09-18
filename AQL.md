@@ -118,6 +118,3 @@ LET permissions = (
 )
 RETURN UNIQUE(permissions)
 ```
-
-RETURN propagatedPermissions
-```
